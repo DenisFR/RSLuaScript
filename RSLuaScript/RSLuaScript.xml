@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<lc:LibraryCompiler xmlns:lc="urn:abb-robotics-robotstudio-librarycompiler"
+                    xmlns="urn:abb-robotics-robotstudio-graphiccomponent"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="urn:abb-robotics-robotstudio-librarycompiler file:///C:\Program%20Files%20(x86)\ABB%20Industrial%20IT\Robotics%20IT\SDK\RobotStudio%20SDK%206.08\LibraryCompilerSchema.xsd
+                                        urn:abb-robotics-robotstudio-graphiccomponent file:///C:\Program%20Files%20(x86)\ABB%20Industrial%20IT\Robotics%20IT\SDK\RobotStudio%20SDK%206.08\GraphicComponentSchema.xsd">
+  <lc:Library fileName="RSLuaScript.rslib">
+    <lc:DocumentProperties>
+      <lc:Author>FRAIPONT_Denis</lc:Author>
+      <lc:Image source="RSLuaScript.png"/>
+    </lc:DocumentProperties>
+    <SmartComponent name="RSLuaScript" icon="RSLuaScript.png"
+                    codeBehind="RSLuaScript.CodeBehind,RSLuaScript.dll"
+                    canBeSimulated="true">
+      <Properties>
+        <DynamicProperty name="Status" valueType="System.String" value="" readOnly="true" uiVisible="false">
+          <Attribute key="AddToDisplayName" value="true"/>
+        </DynamicProperty>
+        <DynamicProperty name="LuaFile" valueType="System.String" value="" readOnly="true"/>
+      </Properties>
+      <Bindings>
+      </Bindings>
+      <Signals>
+        <IOSignal name="LoadFile" signalType="DigitalInput" value="0" autoReset="true"/>
+      </Signals>
+      <GraphicComponents>
+      </GraphicComponents>
+      <Assets>
+        <Asset source="RSLuaScript.dll"/>
+        <Asset name="KopiLua.dll" source="KopiLua.dll"/>
+        <Asset name="RSLuaScript.lua" source="RSLuaScript.lua"/>
+      </Assets>
+    </SmartComponent>
+  </lc:Library>
+</lc:LibraryCompiler>

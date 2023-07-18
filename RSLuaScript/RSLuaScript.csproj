@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RSLuaScript</RootNamespace>
     <AssemblyName>RSLuaScript</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -23,7 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <StartAction>Program</StartAction>
-    <StartProgram>$(ProgramFiles)\ABB Industrial IT\Robotics IT\RobotStudio 6.08\Bin\RobotStudio.exe</StartProgram>
+    <StartProgram>C:\Program Files (x86)\ABB\RobotStudio 2023\Bin\RobotStudio.exe</StartProgram>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,7 +33,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <StartAction>Program</StartAction>
-    <StartProgram>$(ProgramFiles)\ABB Industrial IT\Robotics IT\RobotStudio 6.08\Bin\RobotStudio.exe</StartProgram>
+    <StartProgram>C:\Program Files (x86)\ABB\RobotStudio 2023\Bin\RobotStudio.exe</StartProgram>
   </PropertyGroup>
   <PropertyGroup>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
@@ -41,19 +41,19 @@
   <ItemGroup>
     <Reference Include="ABB.Robotics.Controllers.PC, Version=6.7.7850.130, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\ABB Industrial IT\Robotics IT\SDK\PCSDK 6.08\ABB.Robotics.Controllers.PC.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\ABB\SDK\PCSDK 2023\ABB.Robotics.Controllers.PC.dll</HintPath>
     </Reference>
     <Reference Include="ABB.Robotics.RobotStudio">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\ABB Industrial IT\Robotics IT\SDK\RobotStudio SDK 6.08\ABB.Robotics.RobotStudio.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\ABB\SDK\RobotStudio 2023 SDK\ABB.Robotics.RobotStudio.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ABB.Robotics.RobotStudio.Controllers">
-      <HintPath>C:\Program Files (x86)\ABB Industrial IT\Robotics IT\SDK\RobotStudio SDK 6.08\ABB.Robotics.RobotStudio.Controllers.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\ABB\SDK\RobotStudio 2023 SDK\ABB.Robotics.RobotStudio.Controllers.dll</HintPath>
     </Reference>
     <Reference Include="ABB.Robotics.RobotStudio.Stations">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\ABB Industrial IT\Robotics IT\SDK\RobotStudio SDK 6.08\ABB.Robotics.RobotStudio.Stations.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\ABB\SDK\RobotStudio 2023 SDK\ABB.Robotics.RobotStudio.Stations.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="KopiLua, Version=1.0.6752.15716, Culture=neutral, processorArchitecture=MSIL">
@@ -63,7 +63,7 @@
     </Reference>
     <Reference Include="RobotStudio.Services.RobApi, Version=6.7.7850.130, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\ABB Industrial IT\Robotics IT\SDK\PCSDK 6.08\RobotStudio.Services.RobApi.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\ABB\SDK\PCSDK 2023\RobotStudio.Services.RobApi.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -78,6 +78,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="RSLuaScript.lua" />
+    <None Include="RSLuaScriptLib.lua" />
     <None Include="RSLuaScript.xml">
       <SubType>Designer</SubType>
     </None>
@@ -97,6 +98,6 @@
   <PropertyGroup>
     <PostBuildEvent>copy /y "$(TargetPath)" "$(ProjectDir)"
 copy /y "$(TargetDir)\KopiLua.dll" "$(ProjectDir)"
-"C:\Program Files (x86)\ABB Industrial IT\Robotics IT\RobotStudio 6.08\bin\LibraryCompiler.exe" "$(ProjectDir)\RSLuaScript.xml"</PostBuildEvent>
+"C:\Program Files (x86)\ABB\RobotStudio 2023\Bin\LibraryCompiler.exe" "$(ProjectDir)$(AssemblyName).xml"</PostBuildEvent>
   </PropertyGroup>
 </Project>

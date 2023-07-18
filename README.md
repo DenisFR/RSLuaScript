@@ -51,12 +51,13 @@ You can get Lua manual here:
   - *set_status(string status)*: Set the status of component
   - *add_log(string message)*: Add new message to RS Log
   - *clear_signals()*: Remove all signals of component
-  - *add_signal(string SignalName, string SignalType ["AnalogInput","AnalogOutput","DigitalGroupInput","DigitalGroupOutput","DigitalInput","DigitalOutput"])*: Add a new signal to component
+  - *add_signal(string SignalName, string SignalType ["AnalogInput","AnalogOutput","DigitalGroupInput","DigitalGroupOutput","DigitalInput","DigitalOutput"], bool ReadOnly = True)*: Add a new signal to component
   - *get_signal(string SignalName)*: Get value of a signal. Returns double value.
   - *set_signal(string SignalName, double SignalValue)*: Set value of a signal.
+  - *set_visibility(string ObjectName, double Visibility)*: Set object visibility if Visibility is not 0. Use its "\{guid\}", "*" to get selected guid or composed name ("parent/objectname")
   - *iif(Bool condition, Any ValueForTrue, Any ValueForFalse)*: Returns ValueForTrue if condition is true else ValueForFalse.
   - *get_last_simulation_time()*: Returns double component last simulation time ms, double Simulator current time ms, double Simulator State (0:Init, 1:Paused, 2:Ready, 3:Running, 4:Shutdown, 5:Stopped)
-  - *add_io_connection(string sourceObjectName, string sourceSignalName, string targetObjectName, string targetSignalName, bool allowCycle = True)*: Create a new connection from source to target. If object name is "" then the owner SmartComponent is used. Returns if ceration is successful.
+  - *add_io_connection(string sourceObjectName, string sourceSignalName, string targetObjectName, string targetSignalName, bool allowCycle = True)*: Create a new connection from source to target. If object name is "" then the owner SmartComponent is used. Returns if creation is successful.
 
 
 **Analog Signal**: double value -1.7976931348623157E+308 to 1.7976931348623157E+308 epsilon 4.94065645841247E-324  

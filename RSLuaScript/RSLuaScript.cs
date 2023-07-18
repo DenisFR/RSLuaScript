@@ -1,7 +1,7 @@
 ﻿/*=============================================================================|
-|  PROJECT RSLuaScript                                                   1.0.0 |
+|  PROJECT RSLuaScript                                                   1.0.1 |
 |==============================================================================|
-|  Copyright (C) 2018 Denis FRAIPONT (SICA2M)                                  |
+|  Copyright (C) 2023 Denis FRAIPONT (U2Robotics)                              |
 |  All rights reserved.                                                        |
 |==============================================================================|
 |  RSLuaScript is free software: you can redistribute it and/or modify         |
@@ -214,14 +214,23 @@ namespace RSLuaScript
 					// First look at Example file
 					if (!string.IsNullOrEmpty(initialDir))
 					{
+						//2022.2 >= Project
+						if (System.IO.Directory.Exists(initialDir + "\\..\\User Files"))
+							initialDir = System.IO.Path.GetFullPath(initialDir + "\\..\\User Files");
+
 						if (!System.IO.File.Exists(initialDir + "\\RSLuaScript.lua"))
 						{
 							if (component.Assets.TryGetAsset("RSLuaScript.lua", out Asset asset))
 								System.IO.File.WriteAllBytes(initialDir + "\\RSLuaScript.lua", asset.GetData());
 						}
-					}
+                        if (!System.IO.File.Exists(initialDir + "\\RSLuaScriptLib.lua"))
+                        {
+                            if (component.Assets.TryGetAsset("RSLuaScriptLib.lua", out Asset asset))
+                                System.IO.File.WriteAllBytes(initialDir + "\\RSLuaScriptLib.lua", asset.GetData());
+                        }
+                    }
 
-					System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog
+                    System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog
 					{
 						Title = "Open Lua Script File",
 						InitialDirectory = initialDir,
@@ -271,7 +280,7 @@ namespace RSLuaScript
 		{
 			//Check connections output. Sometimes input doesn't trigger output change.
 			if (component.ContainingProject is Station station)
-				foreach (IOConnection ioConn in station.Connections)
+				foreach (IOConnection ioConn in station.Connections.Cast<IOConnection>())
 				{
 					if (ioConn.TargetObjectName == component.Name)
 						ioConn.Update();
@@ -482,6 +491,10 @@ namespace RSLuaScript
 				lua_pushcfunction(_luaState, SetSignal);
 				lua_setglobal(_luaState, "set_signal");
 
+				//Push SetVisibility function
+				lua_pushcfunction(_luaState, SetVisibility);
+				lua_setglobal(_luaState, "set_visibility");
+
 				//Push IIf function
 				lua_pushcfunction(_luaState, IIf);
 				lua_setglobal(_luaState, "iif");
@@ -522,7 +535,7 @@ namespace RSLuaScript
 
 			//Check connections on load (occurs the first time a signal change after reload component as no new connection event exists)
 			if (component.ContainingProject is Station station)
-				foreach (IOConnection ioConn in station.Connections)
+				foreach (IOConnection ioConn in station.Connections.Cast<IOConnection>())
 				{
 					if (!ioConn.AllowCycle)
 					{
@@ -718,7 +731,8 @@ namespace RSLuaScript
 			{
 				string newSignalName = luaL_checklstring(L, 1).ToString();
 				string newSignalType = luaL_checklstring(L, 2).ToString();
-				IOSignalType signalType = IOSignalType.DigitalInput;
+                bool readOnly = !lua_isboolean(L, 3) || (lua_toboolean(L, 3) != 0); //Create ReadOnly signal by default.
+                IOSignalType signalType = IOSignalType.DigitalInput;
 				switch (newSignalType.ToLower())
 				{
 					case "analoginput": { signalType = IOSignalType.AnalogInput; break; }
@@ -733,7 +747,7 @@ namespace RSLuaScript
 				{
 					IOSignal ios = new IOSignal(newSignalName, signalType)
 					{
-						ReadOnly = true,
+						ReadOnly = readOnly,
 					};
 					myComponent.IOSignals.Add(ios);
 					Logger.AddMessage("RSLuaScript: Lua Script adding Signal " + newSignalName + " to " + myComponent.Name, LogMessageSeverity.Information);
@@ -808,8 +822,8 @@ namespace RSLuaScript
 			string signalName = luaL_checklstring(L, 1).ToString();
 			double signalNewValue = luaL_checknumber(L, 2);
 
-			//Get component owner
-			lua_getglobal(L, "SmartComponent");
+            //Get component owner
+            lua_getglobal(L, "SmartComponent");
 			string compID = lua_tostring(L, -1).ToString();
 
 			SmartComponent myComponent = GetComponent(compID);
@@ -847,6 +861,159 @@ namespace RSLuaScript
 			}
 
 			return 0; // number of return parameters
+		}
+
+		/// <summary>
+		/// Set graphical object visibility.
+		/// Function called by Lua Script with 2 parameters:
+		///		(string Object name, number Visibility [0 Hidden, other Visible])
+		///	Returns Nothing
+		/// </summary>
+		/// <param name="L">Lua State caller</param>
+		/// <returns>Number of return parameters</returns>
+		static int SetVisibility(lua_State L)
+		{
+			//Parameters have to be get before
+			string objectName = luaL_checklstring(L, 1).ToString();
+			double objectVisibility = luaL_checknumber(L, 2);
+
+			//Get component owner
+			lua_getglobal(L, "SmartComponent");
+			string compID = lua_tostring(L, -1).ToString();
+
+			SmartComponent myComponent = GetComponent(compID);
+
+			if (myComponent != null)
+			{
+				Station station = (Station)myComponent.ContainingProject;
+				if (station != null)
+                {
+                    if (Guid.TryParse(objectName, out _))
+                    {
+						GraphicComponent gc = (GraphicComponent)station.GetObjectFromUniqueId(objectName);
+						if(gc != null) gc.Visible = objectVisibility != 0;
+					}
+					else if(objectName == "*")
+                    {
+                        if (Selection.SelectedObjects.SingleSelectedObject is GraphicComponent gc)
+                        {
+                            Logger.AddMessage("RSLuaScript: Lua Script set Visibility called to get selected object Guid:" + gc.UniqueId + "\n"
+                               + "Named:\"" + GetGraphicComponentFullName(gc) + "\"", LogMessageSeverity.Warning);
+                        }
+                        else if (Selection.SelectedObjects.SingleSelectedObject is Body b)
+                        {
+                            Logger.AddMessage("RSLuaScript: Lua Script set Visibility called to get selected object Guid:" + b.UniqueId + "\n"
+                                + "Named:\"" + GetBodyFullName(b) + "\"", LogMessageSeverity.Warning);
+                        }
+                        else
+                            Logger.AddMessage("RSLuaScript: Lua Script set Visibility called to get selected object Guid, but more than one or none are selected.", LogMessageSeverity.Error);
+                    }
+					else
+                    {
+						string[] objectNames = objectName.Split('/');
+						if (!FindGraphicComponent(objectNames, objectName, station, objectVisibility!=0))
+						{
+							Logger.AddMessage("RSLuaScript: Lua Script set Visibility called with unfound object named \"" + objectName + "\"", LogMessageSeverity.Error);
+						}
+
+					}
+				}
+				else
+				{
+					Logger.AddMessage("RSLuaScript: Lua Script set Visibility called from SmartComponent outside a station.", LogMessageSeverity.Error);
+				}
+			}
+			else
+			{
+				Logger.AddMessage("RSLuaScript: Lua Script set Visibility value of unknown component. Closing it.", LogMessageSeverity.Error);
+				lua_close(L);
+			}
+
+			return 0; // number of return parameters
+		}
+
+		/// <summary>
+		/// Get GraphicComponent Fullname
+		/// </summary>
+		/// <param name="gc">GraphicComponent to get Fullname</param>
+		/// <returns>GraphicComponent's Fullname</returns>
+		static string GetGraphicComponentFullName(GraphicComponent gc)
+        {
+			string strFullName = "";
+			if (gc != null)
+				strFullName = gc.Name;
+				if (gc.Parent is GraphicComponent parent)
+                try
+                {
+					strFullName = GetGraphicComponentFullName(parent) + "/" + strFullName;
+                }
+                catch (Exception)
+                { }
+			return strFullName;
+		}
+
+		/// <summary>
+		/// Get the Body Fullname
+		/// </summary>
+		/// <param name="b">Body to get Fullname</param>
+		/// <returns>Body's Fullname</returns>
+		static string GetBodyFullName(Body b)
+        {
+			string strFullName = "";
+			if (b != null)
+            {
+				strFullName = b.Name;
+
+				if (strFullName == "")
+					strFullName = "NoName: Rename it in RobotStudio";
+
+				if ((GraphicComponent)b.Parent != null)
+                {
+					try
+					{
+						strFullName = GetGraphicComponentFullName((GraphicComponent)b.Parent) + "/" + strFullName;
+					}
+					catch (Exception)
+					{ }
+                }
+
+            }
+			return strFullName;
+		}
+
+		/// <summary>
+		/// Find GraphicComponent by its path name, and set its visibility
+		/// </summary>
+		/// <param name="names">Path array</param>
+		/// <param name="objectName">Object fullname</param>
+		/// <param name="parent">Object parent</param>
+		/// <param name="objectVisibility">Object Visibility</param>
+		/// <returns>If object was found</returns>
+		static bool FindGraphicComponent(string[] names, string objectName, ProjectObject parent, bool objectVisibility)
+        {
+			string name = names[0];
+            string[] newNames=names.Skip(1).ToArray();
+			bool found = false;
+
+			if(name != "")
+            {
+				IEnumerable<ProjectObject>	objects = from var in parent.Children
+								where var.Name == name
+								select var;
+				foreach (GraphicComponent gc in objects.Cast<GraphicComponent>())
+				{
+					if (newNames.Length == 0)
+					{
+						gc.Visible = objectVisibility;
+						Logger.AddMessage("RSLuaScript: Lua Script set Visibility called to get named object \"" + objectName + "\"\n"
+							+ "Prefer use its Guid:" + gc.UniqueId, LogMessageSeverity.Warning);
+						found = true;
+					}
+					else
+						found |= FindGraphicComponent(newNames, objectName, gc, objectVisibility);
+				}
+            }
+			return found;
 		}
 
 		/// <summary>
@@ -945,7 +1112,7 @@ namespace RSLuaScript
 				  string sourceSignalName = luaL_checklstring(L, 2).ToString();
 				  string targetObjectName = luaL_checklstring(L, 3).ToString();
 				  string targetSignalName = luaL_checklstring(L, 4).ToString();
-				  bool allowCycle = lua_isboolean(L, 5) ? (lua_toboolean(L, 5) != 0) : true; //Allow cyclic connection by default.
+				  bool allowCycle = !lua_isboolean(L, 5) || (lua_toboolean(L, 5) != 0); //Allow cyclic connection by default.
 
 					ProjectObject sourceObject = null;
 					if (sourceObjectName != "")
